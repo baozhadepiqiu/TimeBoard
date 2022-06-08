@@ -5,6 +5,7 @@ import { CalendarOutlined, SortAscendingOutlined, SortDescendingOutlined } from 
 import Status from './Status'
 import Info from './Info'
 import TimeHead from "./TimeHead";
+import system2region from './system2region.json'
 import('./index.css')
 
 let { Header, Content, Footer } = Layout
@@ -43,10 +44,15 @@ let headArr = [
 export default function TimeBoard() {
     const ws = useRef(null);
     const [message, setMessage] = useState('');
+    // 排序字段
     let [key, setKey] = useState("event.start_time")
+    // 排列顺序是否位倒序
     let [Reverse, setReverse] = useState(false)
+    // 排列的字段  默认Type
     let [select, setSelect] = useState("Type")
+    // 当前排序字段
     let [temp, setTemp] = useState("")
+    let [typeArr, setTypeArr] = useState([])
     useEffect(() => {
         ws.current = new WebSocket("wss://timerboard.net/stream");
         ws.current.onmessage = e => {
@@ -60,10 +66,17 @@ export default function TimeBoard() {
         let [key1, key2] = key.split('.')
         message.initial.sort(compare(key1, key2, Reverse))
     }
+    /**
+     * 选择表头参数
+     * @param {*} key 键
+     * @param {*} select 当前排序项
+     */
     function setPA(key, select) {
+        // 若当前选择的排序字段改变 则默认正序
         if (temp != select) {
             setReverse(false)
         } else {
+            // 否则将当前字段倒序排列
             setReverse(!Reverse)
         }
         setTemp(select)
@@ -78,18 +91,7 @@ export default function TimeBoard() {
             </Header>
             <Content>
                 <div style={{ textAlign: "center", minHeight: "120px" }}>
-                    <Status
-                        thiStatu={"UNCONTESTED"}
-                    />
-                    <Status
-                        thiStatu={"ACTIVE"}
-                    />
-                    <Status
-                        thiStatu={"UPCOMING"}
-                    />
-                    <Status
-                        thiStatu={"START IN <4HRS"}
-                    />
+                    <Status data={typeArr} />
                 </div>
                 <div id="table">
                     <table>
@@ -112,13 +114,21 @@ export default function TimeBoard() {
         </Layout>
     )
 }
-
+/**
+ * 对象排序函数
+ * 按照 obj.[key1].[key2]进行比较
+ * @param {*} key1 第一级key
+ * @param {*} key2 第二级key
+ * @param {*} Reverse 控制倒序
+ * @returns sort()方法 的回调函数
+ */
 function compare(key1, key2, Reverse) {
     if (!key2) {
+        // 注意 这里的 有个小小的问题 未能按正确的名称进行排列
         return function (x, y) {
-            if (x[key1] > y[key1]) {
+            if (system2region[x.solar_system_name] > system2region[y.solar_system_name]) {
                 return 1 * (Reverse ? -1 : 1)
-            } else if (x[key1] < y[key1]) {
+            } else if (system2region[x.solar_system_name] < system2region[y.solar_system_name]) {
                 return -1 * (Reverse ? -1 : 1)
             } else {
                 return 0
@@ -135,4 +145,20 @@ function compare(key1, key2, Reverse) {
             }
         }
     }
+}
+
+function filters(typeArr = [], arr = []) {
+    if (typeArr.includes("UNCONTESTED")) {
+        arr = arr.filter(el => new Date(el.event.start_time) < new Date())
+    }
+    if (typeArr.includes("ACTIVE")) {
+        arr = arr.filter(el => new Date(el.event.start_time) < new Date())
+    }
+    if (typeArr.includes("UPCOMING")) {
+        arr = arr.filter(el => new Date(el.event.start_time) > new Date())
+    }
+    if (typeArr.includes("UPCOMING")) {
+        arr = arr.filter(el => new Date(el.event.start_time) - new Date() > 1000 * 60 * 60 * 4)
+    }
+    return arr
 }

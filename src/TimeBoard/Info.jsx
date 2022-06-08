@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import system2region from './system2region.json'
 
 function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -26,13 +27,13 @@ export default function Info({ data }) {
         <>
             {
                 data.map((el, index) => (
-                    <tr key={"row" + index} className={new Date(el.event.start_time) < date ? "RED" : "WHITE"}>
+                    <tr key={"row" + index} >
                         <td>{el.event.event_type.split("_")[0]}</td>
                         <td>{el.solar_system_name}</td>
-                        <td>{el.event.solar_system_id}</td>
+                        <td>{system2region[el.solar_system_name]}</td>
                         <td>{el.alliance.name}</td>
                         <td>{el.event.start_time}</td>
-                        <td>
+                        <td className={new Date(el.event.start_time) < date ? "RED" : "WHITE"}>
                             {
                                 getDuration(new Date(el.event.start_time) - date)
                             }
@@ -48,11 +49,15 @@ function getDuration(ms) {
     const days = parseInt(ms / (1000 * 60 * 60 * 24))
     ms %= (1000 * 60 * 60 * 24)
     const hour = parseInt(ms / (1000 * 60 * 60))
+    // 防止出现 -1小时 -1分钟 -1秒这样的情况
+    if (ms < 0) {
+        ms *= -1
+    }
     ms %= (1000 * 60 * 60)
     const min = parseInt(ms / (1000 * 60))
     ms %= (1000 * 60)
     const sec = parseInt(ms / (1000))
-    return `${days > 0 ? fillZero(days) + "天" : ""}` + `${fillZero(hour)}小时${fillZero(min)}分钟${fillZero(sec)}秒`
+    return `${days > 0 ? days + "天 " : ""}` + `${fillZero(hour)}小时 ${fillZero(min)}分钟 ${fillZero(sec)}秒`
 }
 function fillZero(num) {
     return num < 10 && num > 0 ? `0${num}` : num
