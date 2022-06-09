@@ -1,11 +1,11 @@
-.container{
+.container {
     color: azure;
     background-color: black;
     font-size: 14px;
     min-height: 100vh;
 }
 
-#table{
+#table {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -14,12 +14,13 @@
 table {
     border-collapse: collapse;
 }
-thead{
+
+thead {
     font-weight: 900;
     font-size: 18px;
 }
 
-thead td{
+thead td {
     width: 160px;
 }
 
@@ -33,19 +34,35 @@ th {
     height: 30px;
     text-align: left;
     padding: 8px;
-    background-color: rgb(40,40,40);
+    background-color: rgb(40, 40, 40);
 }
 
-.RED{
+.RED {
     color: red;
 }
 
-.WHITE{
+.WHITE {
     color: aliceblue;
 }
 
-hr{
+hr {
     margin-top: 20px;
     border: 0;
     border-top: 1px solid #282828;
+}
+
+.UNCONTESTED {
+    color: #8b4513;
+}
+
+.ACTIVE {
+    color: #ff1a12;
+}
+
+.UPCOMING {
+    color: #87ceeb;
+}
+
+.FourHour {
+    color: #ff8c00;
 }

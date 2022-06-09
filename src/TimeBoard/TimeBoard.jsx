@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Layout } from 'antd'
-import { CalendarOutlined,LoadingOutlined } from '@ant-design/icons'
+import { CalendarOutlined, LoadingOutlined } from '@ant-design/icons'
 import Status from './Status'
 import Info from './Info'
 import TimeHead from "./TimeHead";
@@ -80,6 +80,7 @@ export default function TimeBoard() {
             ws.current?.close();
         };
     }, []);
+    let counts = []
     // 数据过滤
     if (message) {
         let [key1, key2] = key.split('.')
@@ -87,18 +88,25 @@ export default function TimeBoard() {
         if (typeArr.includes("UNCONTESTED")) {
             message = message.filter(el => new Date(el.event.start_time) < new Date() && el.event.defender_score == 0.6)
         }
+        counts[0] = message.filter(el => new Date(el.event.start_time) < new Date() && el.event.defender_score == 0.6).length
         if (typeArr.includes("ACTIVE")) {
             message = message.filter(el => new Date(el.event.start_time) < new Date())
         }
+        counts[1] = message.filter(el => new Date(el.event.start_time) < new Date()).length
         if (typeArr.includes("UPCOMING")) {
             message = message.filter(el => new Date(el.event.start_time) > new Date())
         }
+        counts[2] = message.filter(el => new Date(el.event.start_time) > new Date()).length
         if (typeArr.includes("FourHour")) {
             message = message.filter(el => {
                 let time = new Date(el.event.start_time) - new Date()
                 return time < 1000 * 60 * 60 * 4 && time > 0
             })
         }
+        counts[3] = message.filter(el => {
+            let time = new Date(el.event.start_time) - new Date()
+            return time < 1000 * 60 * 60 * 4 && time > 0
+        }).length
         memo = null
     }
     /**
@@ -137,6 +145,7 @@ export default function TimeBoard() {
             <Content>
                 <div style={{ textAlign: "center", minHeight: "120px" }}>
                     <Status
+                        counts={counts}
                         data={typeArr}
                         checked={typeArr}
                         onclick={checkStatus}
@@ -172,7 +181,7 @@ export default function TimeBoard() {
                 <p className={Style.footerMessage}>{message.length} timers currently running.</p>
                 <p>This App Power By <a href="https://react.docschina.org/" target="_blank">React</a> .
                     fed by data from <a href="https://github.com/xxpizzaxx/pizza-sov-relay" target="_blank">pizza-sov-relay</a> .
-                    </p>
+                </p>
             </Footer>
         </Layout>
     )

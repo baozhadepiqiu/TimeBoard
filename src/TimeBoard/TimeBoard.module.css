@@ -14,7 +14,7 @@
 }
 
 .checked {
-    color: azure;
+    background-color: azure;
 }
 
 .loading{
