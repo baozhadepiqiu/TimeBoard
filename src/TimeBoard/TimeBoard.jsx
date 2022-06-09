@@ -1,49 +1,59 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Layout } from 'antd'
-import { CalendarOutlined, SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons'
+import { CalendarOutlined,LoadingOutlined } from '@ant-design/icons'
 import Status from './Status'
 import Info from './Info'
 import TimeHead from "./TimeHead";
 import system2region from './system2region.json'
+import jsonpatch from 'jsonpatch'
 import('./index.css')
+import Style from './TimeBoard.module.css'
 
 let { Header, Content, Footer } = Layout
 
 let headArr = [
     {
         keys: "event.event_type",
-        th: "Type"
+        th: "Type",
+        CN: "建筑类型"
     },
     {
         keys: "solar_system_name",
-        th: "System"
+        th: "System",
+        CN: "星系"
     },
     {
         keys: "event.solar_system_id",
-        th: "Region"
+        th: "Region",
+        CN: "星域"
     },
     {
         keys: "alliance.name",
-        th: "Owner"
+        th: "Owner",
+        CN: "防守方"
     },
     {
         keys: "event.start_time",
-        th: "Time"
+        th: "Time",
+        CN: "开始时间"
     },
     {
         keys: "event.start_time",
-        th: "Remaining"
+        th: "Remaining",
+        CN: "剩余时间"
     },
     {
         keys: "event.defender_score",
-        th: "DefenderScore"
+        th: "DefenderScore",
+        CN: "防守进度"
     },
 ]
+let gTemp = {}
 
 export default function TimeBoard() {
     const ws = useRef(null);
-    const [message, setMessage] = useState('');
+    let [message, setMessage] = useState('');
     // 排序字段
     let [key, setKey] = useState("event.start_time")
     // 排列顺序是否位倒序
@@ -56,32 +66,66 @@ export default function TimeBoard() {
     useEffect(() => {
         ws.current = new WebSocket("wss://timerboard.net/stream");
         ws.current.onmessage = e => {
-            setMessage(eval("(" + e.data + ")"));
+            let datas = JSON.parse(e["data"])
+            if ("initial" in datas) {
+                setMessage(datas.initial);
+                gTemp = datas.initial
+            }
+            if ("diff" in datas) {
+                setMessage(jsonpatch.apply_patch(gTemp, datas["diff"]));
+            }
+            // 部分修改算法
         };
         return () => {
             ws.current?.close();
         };
-    }, [ws]);
+    }, []);
+    // 数据过滤
     if (message) {
         let [key1, key2] = key.split('.')
-        message.initial.sort(compare(key1, key2, Reverse))
+        let memo = message.sort(compare(key1, key2, Reverse))
+        if (typeArr.includes("UNCONTESTED")) {
+            message = message.filter(el => new Date(el.event.start_time) < new Date() && el.event.defender_score == 0.6)
+        }
+        if (typeArr.includes("ACTIVE")) {
+            message = message.filter(el => new Date(el.event.start_time) < new Date())
+        }
+        if (typeArr.includes("UPCOMING")) {
+            message = message.filter(el => new Date(el.event.start_time) > new Date())
+        }
+        if (typeArr.includes("FourHour")) {
+            message = message.filter(el => {
+                let time = new Date(el.event.start_time) - new Date()
+                return time < 1000 * 60 * 60 * 4 && time > 0
+            })
+        }
+        memo = null
     }
     /**
-     * 选择表头参数
-     * @param {*} key 键
-     * @param {*} select 当前排序项
+     *  选择表头参数
+     * @param {String} key 键
+     * @param {String} select 当前排序项
      */
     function setPA(key, select) {
         // 若当前选择的排序字段改变 则默认正序
         if (temp != select) {
             setReverse(false)
         } else {
-            // 否则将当前字段倒序排列
+            // 否则将当前字段排列顺序取反
             setReverse(!Reverse)
         }
         setTemp(select)
         setKey(key)
         setSelect(select)
+    }
+    function checkStatus(status) {
+        let temp = Array.from(typeArr)
+        if (temp.includes(status)) {
+            temp = temp.filter(el => el !== status)
+        } else {
+            temp.push(status)
+        }
+        setTypeArr(temp)
     }
     return (
         <Layout className="container" >
@@ -89,37 +133,56 @@ export default function TimeBoard() {
                 <CalendarOutlined style={{ fontSize: "30px", color: "white" }} />
                 <span style={{ color: "white", fontSize: "25px" }}>TimeBoard</span>
             </Header>
+            <hr />
             <Content>
                 <div style={{ textAlign: "center", minHeight: "120px" }}>
-                    <Status data={typeArr} />
+                    <Status
+                        data={typeArr}
+                        checked={typeArr}
+                        onclick={checkStatus}
+                    />
                 </div>
                 <div id="table">
                     <table>
                         <thead>
                             <tr>
                                 {
-                                    headArr.map(el => <TimeHead key={el.th} setPA={setPA} select={select} Reverse={Reverse} keys={el.keys} th={el.th} />)
+                                    headArr.map(el => <TimeHead
+                                        key={el.th}
+                                        setPA={setPA}
+                                        select={select}
+                                        Reverse={Reverse}
+                                        keys={el.keys}
+                                        th={el.th}
+                                        cn={el.CN}
+                                    />)
                                 }
                             </tr>
                         </thead>
                         <tbody>
                             {
-                                !message ? <tr><td>loading</td></tr> : <Info data={message.initial} />
+                                !message ? <tr><td colSpan="7" className={Style.loading}>loading <LoadingOutlined /> </td></tr> : <Info data={message} />
                             }
                         </tbody>
                     </table>
                 </div>
             </Content>
-            {/* <Footer>Footer</Footer> */}
+            <hr />
+            <Footer className={Style.footer}>
+                <p className={Style.footerMessage}>{message.length} timers currently running.</p>
+                <p>This App Power By <a href="https://react.docschina.org/" target="_blank">React</a> .
+                    fed by data from <a href="https://github.com/xxpizzaxx/pizza-sov-relay" target="_blank">pizza-sov-relay</a> .
+                    </p>
+            </Footer>
         </Layout>
     )
 }
 /**
  * 对象排序函数
  * 按照 obj.[key1].[key2]进行比较
- * @param {*} key1 第一级key
- * @param {*} key2 第二级key
- * @param {*} Reverse 控制倒序
+ * @param {String} key1 第一级key
+ * @param {String} key2 第二级key
+ * @param {boolean} Reverse 控制倒序
  * @returns sort()方法 的回调函数
  */
 function compare(key1, key2, Reverse) {
@@ -145,20 +208,4 @@ function compare(key1, key2, Reverse) {
             }
         }
     }
-}
-
-function filters(typeArr = [], arr = []) {
-    if (typeArr.includes("UNCONTESTED")) {
-        arr = arr.filter(el => new Date(el.event.start_time) < new Date())
-    }
-    if (typeArr.includes("ACTIVE")) {
-        arr = arr.filter(el => new Date(el.event.start_time) < new Date())
-    }
-    if (typeArr.includes("UPCOMING")) {
-        arr = arr.filter(el => new Date(el.event.start_time) > new Date())
-    }
-    if (typeArr.includes("UPCOMING")) {
-        arr = arr.filter(el => new Date(el.event.start_time) - new Date() > 1000 * 60 * 60 * 4)
-    }
-    return arr
 }

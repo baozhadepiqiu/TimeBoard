@@ -1,0 +1,93 @@
+.statuTitle {
+    display: inline-block;
+    margin: 0 10px 0 10px;
+    bottom: 0;
+    font-size: 23px;
+}
+
+.InfoHover:hover {
+    background-color: aliceblue;
+}
+
+.link {
+    color: white;
+}
+
+.checked {
+    color: azure;
+}
+
+.loading{
+    text-align:center;
+}
+
+.noChecked {
+    color: grey;
+}
+
+.icon {
+    font-size: 16px;
+}
+
+.redBlink {
+    color: red;
+    animation: blink 3s infinite cubic-bezier(0.35, 0.04, 0.64, 0.99);
+}
+
+.greenBlink {
+    color: green;
+    animation: blink 3s infinite cubic-bezier(0.35, 0.04, 0.64, 0.99);
+}
+
+.footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.footer p {
+    margin: 0;
+    padding: 5px 0 0 0;
+}
+
+.footer p a {
+    color: #2a9fd6;
+}
+
+.footerMessage {
+    text-align: center;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 50;
+    }
+
+    50% {
+        opacity: 100;
+    }
+
+    75% {
+        opacity: 50;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.notBeSelect {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.notBeSelect:hover {
+    cursor: pointer;
+}

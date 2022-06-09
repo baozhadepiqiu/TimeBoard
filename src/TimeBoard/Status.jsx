@@ -1,6 +1,23 @@
-export default function Status({ thiStatu, onclick }) {
+import Style from './TimeBoard.module.css'
+
+export default function Status({ onclick, checked }) {
+    let map= {
+        UNCONTESTED:"未进行争夺",
+        ACTIVE:"争夺中",
+        UPCOMING:"近期全部",
+        FourHour:"最近4小时内"
+    }
     return (
-        <div onClick={onclick} style={{ display: "inline-block", margin: "0 10px 0 10px", bottom: "0", fontSize: "23px" }}>
-        </div>
+        <>
+            {
+                ["UNCONTESTED", "ACTIVE", "UPCOMING", "FourHour"].map(el =>
+                    <div
+                        key={el}
+                        onClick={() => onclick(el)}
+                        className={Style.statuTitle + ` ${checked.includes(el) ? Style.checked : Style.noChecked} ${Style.notBeSelect}`}>
+                        {map[el]}
+                    </div>)
+            }
+        </>
     )
 }
