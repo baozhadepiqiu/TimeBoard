@@ -16,7 +16,7 @@ export default function Status({ onclick, checked, counts }) {
                         onClick={() => onclick(el)}
                         className={Style.statuTitle + ` ${checked.includes(el) ? Style.checked : Style.noChecked} ${Style.notBeSelect} ${el}`}>
                         {map[el]}
-                        <div >{counts[index]}</div>
+                        <div>{counts[index]}</div>
                     </div>)
             }
         </>

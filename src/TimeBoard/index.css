@@ -30,11 +30,10 @@ th {
     padding: 5px 2px;
     text-align: center;
     Word-break: break-all;
-    min-width: 120px;
+    min-width: 150px;
     height: 30px;
     text-align: left;
     padding: 8px;
-    background-color: rgb(40, 40, 40);
 }
 
 .RED {

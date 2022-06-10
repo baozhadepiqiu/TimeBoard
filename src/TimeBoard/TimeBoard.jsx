@@ -84,22 +84,30 @@ export default function TimeBoard() {
     // 数据过滤
     if (message) {
         let [key1, key2] = key.split('.')
-        let memo = message.sort(compare(key1, key2, Reverse))
+        let date = new Date()
+        let callback = compare(key1, key2, Reverse)
+        message.sort(callback)
+        // 释放闭包资源
+        callback = null
+        // UNCONTESTED（未进行争夺） 在攻击窗口但是防御方和进攻方都未曾获得进度
         if (typeArr.includes("UNCONTESTED")) {
-            message = message.filter(el => new Date(el.event.start_time) < new Date() && el.event.defender_score == 0.6)
+            message = message.filter(el => new Date(el.event.start_time) < date && el.event.defender_score == 0.6)
         }
-        counts[0] = message.filter(el => new Date(el.event.start_time) < new Date() && el.event.defender_score == 0.6).length
+        counts[0] = message.filter(el => new Date(el.event.start_time) < date && el.event.defender_score == 0.6).length
+        // ACTIVE (进行中的) 当前时间处于攻击窗口的
         if (typeArr.includes("ACTIVE")) {
-            message = message.filter(el => new Date(el.event.start_time) < new Date())
+            message = message.filter(el => new Date(el.event.start_time) < date)
         }
-        counts[1] = message.filter(el => new Date(el.event.start_time) < new Date()).length
+        counts[1] = message.filter(el => new Date(el.event.start_time) < date).length
+        // UPCOMING(近期全部) 除了已经开始的剩余的全部
         if (typeArr.includes("UPCOMING")) {
-            message = message.filter(el => new Date(el.event.start_time) > new Date())
+            message = message.filter(el => new Date(el.event.start_time) > date)
         }
-        counts[2] = message.filter(el => new Date(el.event.start_time) > new Date()).length
+        counts[2] = message.filter(el => new Date(el.event.start_time) > date).length
+        // FourHour 攻击窗口在4小时内
         if (typeArr.includes("FourHour")) {
             message = message.filter(el => {
-                let time = new Date(el.event.start_time) - new Date()
+                let time = new Date(el.event.start_time) - date
                 return time < 1000 * 60 * 60 * 4 && time > 0
             })
         }
@@ -107,7 +115,6 @@ export default function TimeBoard() {
             let time = new Date(el.event.start_time) - new Date()
             return time < 1000 * 60 * 60 * 4 && time > 0
         }).length
-        memo = null
     }
     /**
      *  选择表头参数
@@ -126,6 +133,11 @@ export default function TimeBoard() {
         setKey(key)
         setSelect(select)
     }
+    /**
+     *  过滤星系内建筑状态 TCU IHUB 
+     *  ["UNCONTESTED", "ACTIVE", "UPCOMING", "FourHour"]
+     * @param {String} status 星系建筑状态
+     */
     function checkStatus(status) {
         let temp = Array.from(typeArr)
         if (temp.includes(status)) {
@@ -137,9 +149,9 @@ export default function TimeBoard() {
     }
     return (
         <Layout className="container" >
-            <Header>
-                <CalendarOutlined style={{ fontSize: "30px", color: "white" }} />
-                <span style={{ color: "white", fontSize: "25px" }}>TimeBoard</span>
+            <Header style={{ fontSize: "30px", padding: "5px 0 0 30px" }}>
+                <CalendarOutlined />
+                <span style={{ fontSize: "25px" }}>TimeBoard</span>
             </Header>
             <hr />
             <Content>

@@ -6,7 +6,7 @@
 }
 
 .InfoHover:hover {
-    background-color: aliceblue;
+    background-color: #282828;
 }
 
 .link {
@@ -35,7 +35,7 @@
 }
 
 .greenBlink {
-    color: green;
+    color: rgb(0, 255, 0);
     animation: blink 3s infinite cubic-bezier(0.35, 0.04, 0.64, 0.99);
 }
 
@@ -64,16 +64,8 @@
         opacity: 0;
     }
 
-    25% {
-        opacity: 50;
-    }
-
     50% {
         opacity: 100;
-    }
-
-    75% {
-        opacity: 50;
     }
 
     100% {
